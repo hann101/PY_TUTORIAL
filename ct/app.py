@@ -8,8 +8,7 @@ from bs4 import BeautifulSoup
 from pymongo import MongoClient
 
 client = MongoClient('localhost', 27017)
-# mongodb://test:test@localhost
-# 13.209.69.252
+
 db = client.dbjungle
 
 
