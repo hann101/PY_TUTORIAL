@@ -1,0 +1,209 @@
+<!Doctype html>
+<html lang="ko">
+
+<head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+          crossorigin="anonymous">
+
+    <!-- JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
+            integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q"
+            crossorigin="anonymous"></script>
+
+    <!-- 구글폰트 -->
+    <link href="https://fonts.googleapis.com/css?family=Stylish&display=swap" rel="stylesheet">
+
+    <title>SW사관학교 정글 | 나홀로 메모장</title>
+
+    <!-- style -->
+    <style type="text/css">
+        * {
+            font-family: "Stylish", sans-serif;
+        }
+
+        .wrap {
+            width: 500px;
+
+        }
+
+        .comment {
+            color: blue;
+            font-weight: bold;
+        }
+
+        #post-box {
+            width: 500px;
+            margin: 20px auto;
+            padding: 50px;
+            border: black solid;
+            border-radius: 5px;
+        }
+    </style>
+    <script>
+        $(document).ready(function () {
+            $("#cards-box").html("");
+            showPost();
+        });
+
+
+        function postSave() {
+            let title = $("#post-title").val()
+            let content = $("#post-content").val()
+            $.ajax({
+                type: "POST",
+                url: "/memo",
+                data: {title_give: title, content_give: content},
+                success: function (response) { // 성공하면
+                    if (response["result"] == "success") {
+                        alert("포스팅 성공!");
+                        // 3. 성공 시 페이지 새로고침하기
+                        window.location.reload();
+                    } else {
+                        alert("서버 오류!")
+                    }
+                }
+            })
+        }
+
+        function deleteStar(title) {
+            // 1. 서버에 1) POST 방식으로, 2) /api/delete 라는 url에, 3) name_give라는 이름으로 name을 전달합니다.
+            // 참고) POST 방식이므로 data: {'name_give': name} 과 같은 양식이 되어야합니다!
+            $.ajax({
+                type: "POST",
+                url: "/api/delete",
+                data: {'title_give': title},
+                success: function (response) {
+                    if (response['result'] == 'success') {
+                        // 2. '삭제 완료! 안녕!' 얼럿을 띄웁니다.
+                        alert('삭제 완료! 안녕!')
+                        // 3. 변경된 정보를 반영하기 위해 새로고침합니다.
+                        window.location.reload()
+                    }
+                }
+            });
+        }
+
+        function repairCard() {
+            // 1. 서버에 1) POST 방식으로, 2) /api/delete 라는 url에, 3) name_give라는 이름으로 name을 전달합니다.
+            // 참고) POST 방식이므로 data: {'name_give': name} 과 같은 양식이 되어야합니다!
+            $('#cards-box').empty()
+            $.ajax({
+                type: "GET",
+                url: "/api/repair",
+                data: {},
+                success: function (response) {
+                    if (response["result"] == "success") {
+                        let repair = response["repair"]
+                        for (let i = 0; i < repair.length; i++) {
+                            //돌리면 모든 카드가 변한다.. 하나의 카드만 전달하게 바꿔
+
+                            let title = repair[i]["title"]
+                            let content = repair[i]["content"]
+                            let temp_html_2 =
+                                `                    <div class="card" style="width: 10rem;">
+
+                            <div class="form-group">
+                            <div id="post-title" class="form-group">
+                            <textarea class="form-control" id="FormControlTextarea1" rows="1">${title}</textarea>
+                            </div>
+
+                            </div>
+                            <div class="form-group">
+                            <div id="post-title" class="form-group">
+                            <textarea class="form-control" id="FormControlTextarea2" rows="1">${content}</textarea>
+                            </div>
+
+                            </div>            <button onclick="postSave()" id="btn-post-box" type="button" class="btn btn-primary">저장하기
+
+                            </div>
+                            `
+                            $("#cards-box").append(temp_html_2);
+                        }
+
+                    }
+                }
+            })
+        }
+
+        function showPost() {
+            $('#cards-box').empty()
+            $.ajax({
+                type: "GET",
+                url: "/memo",
+                data: {},
+                success: function (response) {
+                    if (response["result"] == "success") {
+                        let showAll = response["showAll"]
+                        for (let i = 0; i < showAll.length; i++) {
+                            let title = showAll[i]["title"]
+                            let content = showAll[i]["content"]
+                            let temp_html =
+                                `                    <div class="card" style="width: 10rem;">
+                        <div id="zero-box" class="card-body">
+                            <h5 id="one_box" class="card-title">${title}</h5>
+                            <p id="two_box" class="card-text">${content}</p>
+                            <a href="#" onclick="repairCard('${title}')" class="card-link">수정</a>
+                            <a href="#" onclick="deleteStar('${title}')" class="card-link">삭제</a>
+                            <!--    deleteStar 의 타이틀로 묶어놔야 js함수랑 연동됨 연결됨 -->
+                                </div>
+                                </div>
+                                `
+                            $("#cards-box").append(temp_html);    }
+                                                                    }
+                                                                }
+                                                            })
+                                                        }
+
+
+
+
+</script>
+
+</head>
+
+<body>
+<div class="wrap">
+    <div class="jumbotron">
+        <h1 class="display-4">나홀로 링크 메모장!</h1>
+        <div>
+            <div class="form-group">
+                <div id="post-title" class="form-group">
+                    <label for="exampleFormControlTextarea1">제목</label>
+                    <textarea class="form-control" id="exampleFormControlTextarea1" rows="1"></textarea>
+                </div>
+
+            </div>
+            <div class="form-group">
+                <div id="post-content" class="form-group">
+                    <label for="exampleFormControlTextarea1">내용</label>
+                    <textarea class="form-control" id="exampleFormControlTextarea2" rows="2"></textarea>
+                </div>
+            </div>
+        </div>
+        <p class="lead">
+            <button onclick="postSave()" id="btn-post-box" type="button" class="btn btn-primary">저장하기
+            </button>
+        </p>
+    </div>
+
+    <div id="cards-box" class="card-columns">
+        <div class="card" style="width: 18rem;">
+            <div id="zero-box" class="card-body">
+                <h5 id="one-box" class="card-title">제목</h5>
+                <p id="two-box" class="card-text">내용</p>
+                <a href="#" class="card-link">수정</a>
+                <a href="#" onclick="deletePost('김다미')" class="card-link">삭제</a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>
